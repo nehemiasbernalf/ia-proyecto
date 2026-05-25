@@ -24,10 +24,8 @@
         <ul id="error-list"></ul>
     </div>
 
-    <!-- Nueva distribución de rejilla dividida -->
     <div class="main-grid">
         
-        <!-- Bloque Izquierdo: Configuración e Inputs -->
         <section class="card-panel">
             <h2 class="panel-title">Parámetros de Entrada</h2>
             
@@ -64,11 +62,9 @@
             </form>
         </section>
 
-        <!-- Bloque Derecho: Salida Computacional Dinámica -->
         <section id="results-panel" class="results-container">
             <div class="results-flow">
                 
-                <!-- Hijo 1 Card -->
                 <div class="child-output-card">
                     <div class="output-meta">Especimen F1-A (Hijo 1)</div>
                     <div id="res-bin1" class="output-string-display">000</div>
@@ -76,7 +72,6 @@
                     <div id="res-math1" class="process-box"></div>
                 </div>
 
-                <!-- Hijo 2 Card -->
                 <div class="child-output-card h2-variant">
                     <div class="output-meta">Especimen F1-B (Hijo 2)</div>
                     <div id="res-bin2" class="output-string-display">000</div>
@@ -150,8 +145,8 @@
                 feedbackEl.style.display = 'none';
             }
             
-            lenPadre.textContent = `${padreInput.value.length} b`;
-            lenMadre.textContent = `${madreInput.value.length} b`;
+            lenPadre.textContent = `${padreInput.value.length} bits`;
+            lenMadre.textContent = `${madreInput.value.length} bits`;
 
             if(padreInput.value.length > 0 && madreInput.value.length > 0 && padreInput.value.length !== madreInput.value.length) {
                 syncWarning.style.display = 'block';
@@ -176,8 +171,8 @@
     document.getElementById('btn-reset').addEventListener('click', function() {
         document.getElementById('genetic-form').reset();
         
-        lenPadre.textContent = "0 b";
-        lenMadre.textContent = "0 b";
+        lenPadre.textContent = "0 bits";
+        lenMadre.textContent = "0 bits";
         syncWarning.style.display = 'none';
         
         padreInput.classList.remove('input-error');
@@ -289,14 +284,33 @@
         const fit1 = calcularFitnessEvolutivo(child1);
         const fit2 = calcularFitnessEvolutivo(child2);
 
+        // --- CÁLCULO ADICIONAL DE MÁXIMOS Y DOMINANCIA ---
+        const valorMaximoDecimal = (1 << lenPadreVal) - 1;
+        const fitnessOptimoMaximo = Math.pow(valorMaximoDecimal, 2);
+
+        let mensajeHijo1 = "";
+        let mensajeHijo2 = "";
+
+        if (fit1.fitness_cuadrado > fit2.fitness_cuadrado) {
+            mensajeHijo1 = `<div style="margin-top:12px; padding:6px; border-left:3px solid #10b981;"><strong>🥇 Máximo Obtenido (Hijo Dominante)</strong><br><span style="font-size:0.8rem; color:gray;">Óptimo global del ecosistema: ${fitnessOptimoMaximo}</span></div>`;
+            mensajeHijo2 = `<div style="margin-top:12px; padding:6px; font-size:0.8rem; color:gray;">Óptimo global del ecosistema: ${fitnessOptimoMaximo}</div>`;
+        } else if (fit2.fitness_cuadrado > fit1.fitness_cuadrado) {
+            mensajeHijo1 = `<div style="margin-top:12px; padding:6px; font-size:0.8rem; color:gray;">Óptimo global del ecosistema: ${fitnessOptimoMaximo}</div>`;
+            mensajeHijo2 = `<div style="margin-top:12px; padding:6px; border-left:3px solid #10b981;"><strong>🥇 Máximo Obtenido (Hijo Dominante)</strong><br><span style="font-size:0.8rem; color:gray;">Óptimo global del ecosistema: ${fitnessOptimoMaximo}</span></div>`;
+        } else {
+            const msgEmpate = `<div style="margin-top:12px; padding:6px; border-left:3px solid #3b82f6;"><strong>🤝 Rendimiento Equivalente</strong><br><span style="font-size:0.8rem; color:gray;">Óptimo global del ecosistema: ${fitnessOptimoMaximo}</span></div>`;
+            mensajeHijo1 = msgEmpate;
+            mensajeHijo2 = msgEmpate;
+        }
+
         // Inyección de los datos directo a la interfaz manteniendo los formatos previos
         document.getElementById('res-bin1').innerHTML = formatearCadenaCorte(child1, cut);
         document.getElementById('res-fit1').textContent = fit1.fitness_cuadrado;
-        document.getElementById('res-math1').innerHTML = fit1.proceso;
+        document.getElementById('res-math1').innerHTML = fit1.proceso + mensajeHijo1;
 
         document.getElementById('res-bin2').innerHTML = formatearCadenaCorte(child2, cut);
         document.getElementById('res-fit2').textContent = fit2.fitness_cuadrado;
-        document.getElementById('res-math2').innerHTML = fit2.proceso;
+        document.getElementById('res-math2').innerHTML = fit2.proceso + mensajeHijo2;
 
         // Visualización de la interfaz
         resultsPanel.style.display = 'block';
